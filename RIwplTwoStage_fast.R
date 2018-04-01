@@ -1,3 +1,4 @@
+
 #setting: notation
 N1=100 ## number of sampling cluster in the first stage (population level)
 N2=100 ##number of elements in each sampling cluster (population level)
@@ -835,7 +836,7 @@ abline(h=0)
 boxplot(cbind(Fitis_NML[,c(1:4)],Fitis_PL[,c(1:4)], Fitis_WPL[,c(1:4)]) ,   col=color)
 abline(h=0)
 
-#install.packages("xtable")
+install.packages("xtable")
 library(xtable)
 
 construct_header <- function(df, grp_names, span, align = "c", draw_line = T) {

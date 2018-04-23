@@ -1,7 +1,7 @@
 
 #setting: notation
-N1=100 ## number of sampling cluster in the first stage (population level)
-N2=100 ##number of elements in each sampling cluster (population level)
+N1=1000 ## number of sampling cluster in the first stage (population level)
+N2=500 ##number of elements in each sampling cluster (population level)
 latitude<-1:N2
 longitude<-1:N1
 population<-expand.grid(lat=latitude,long=longitude)
@@ -31,10 +31,10 @@ table(table(population$cluster))
 table(table(population$PSU))
 
 #Model: parameter from random intercept model
-truebeta1=1
-truebeta2=3
-truesigma2=2
-truetau2=0.6
+truebeta1=0.1
+truebeta2=0.2
+truesigma2=1
+truetau2=1.5
 truevalue<-c(truebeta1,truebeta2, truesigma2, truetau2)
 names(truevalue)<-c("beta1", "beta2", "sigma2", "tau2")
 
@@ -74,7 +74,7 @@ n2informative= function(r, sc, param, N2){
    b=rep(NA, length=length(unique(population$sc)))
    for (i in unique(sc)){
       a[i]=mean(r[sc==i])
-      b[i]=2*ceiling((param[1]*exp(-param[2]*a[i]))/(1 +param[1]*exp(-param[2]*a[i]))*N2/2)
+      b[i]=ceiling((param[1]*exp(-param[2]*a[i]))/(1 +param[1]*exp(-param[2]*a[i]))*N2)
    }
    b
 }
@@ -86,6 +86,15 @@ n2is=n2pop*FirststageSRSWOR
 SecondstageSRSWORis=unlist(lapply(n2is[c(which(n2is!=0))], function(v) return(srswor(v, N2))))
 TwostageSRSWORSampleis=FirststageSRSWORSample[c(which(SecondstageSRSWORis==1)), ]
 
+
+
+#check
+summary(population$y)
+summary(TwostageSRSWORSample$y)
+summary(TwostageSRSWORSampleis$y)
+
+
+truevalue
 
 # Estimation: full-likelihood
 #install.packages("lme4")
@@ -868,53 +877,53 @@ construct_header <- function(df, grp_names, span, align = "c", draw_line = T) {
 }
 
 
-install.packages("expm")
-library("expm") #use sqrtm function
+
 
 #define the squre root of J
-sqrtJ_PL<-array(0, c(4,4, LOTS))
+
+sqrt_diagJ_PL=matrix(0, nrow=LOTS, ncol=4)
 for ( i in 1:LOTS){
-    sqrtJ_PL[,,i]=sqrtm(J_PL[, , i])
+   sqrt_diagJ_PL[i,]= sqrt(diag(J_PL[,,i]))
 }
 
-sqrtJis_PL<-array(0, c(4,4, LOTS))
+sqrt_diagJis_PL=matrix(0, nrow=LOTS, ncol=4)
 for ( i in 1:LOTS){
-    sqrtJis_PL[,,i]=sqrtm(Jis_PL[, , i])
+   sqrt_diagJis_PL[i,]= sqrt(diag(Jis_PL[,,i]))
 }
 
-sqrtJ_WPL<-array(0, c(4,4, LOTS))
+
+sqrt_diagJ_WPL=matrix(0, nrow=LOTS, ncol=4)
 for ( i in 1:LOTS){
-    sqrtJ_WPL[,,i]=sqrtm(J_WPL[, , i])
+   sqrt_diagJ_WPL[i,]= sqrt(diag(J_WPL[,,i]))
 }
 
-sqrtJis_WPL<-array(0, c(4,4, LOTS))
+sqrt_diagJis_WPL=matrix(0, nrow=LOTS, ncol=4)
 for ( i in 1:LOTS){
-    sqrtJis_WPL[,,i]=sqrtm(Jis_WPL[, , i])
+   sqrt_diagJis_WPL[i,]= sqrt(diag(Jis_WPL[,,i]))
 }
+
 
 #define the squre root of G
-sqrtG_PL<-array(0, c(4,4, LOTS))
+
+sqrt_diagG_PL=matrix(0, nrow=LOTS, ncol=4)
 for ( i in 1:LOTS){
-    sqrtG_PL[,,i]=sqrtm(G_PL[, , i])
+   sqrt_diagG_PL[i,]= sqrt(diag(G_PL[,,i]))
 }
 
-sqrtGis_PL<-array(0, c(4,4, LOTS))
+sqrt_diagGis_PL=matrix(0, nrow=LOTS, ncol=4)
 for ( i in 1:LOTS){
-    sqrtGis_PL[,,i]=sqrtm(Gis_PL[, , i])
+   sqrt_diagGis_PL[i,]= sqrt(diag(Gis_PL[,,i]))
 }
 
-sqrtG_WPL<-array(0, c(4,4, LOTS))
+sqrt_diagG_WPL=matrix(0, nrow=LOTS, ncol=4)
 for ( i in 1:LOTS){
-    sqrtG_WPL[,,i]=sqrtm(G_WPL[, , i])
+   sqrt_diagG_WPL[i,]= sqrt(diag(G_WPL[,,i]))
 }
 
-sqrtGis_WPL<-array(0, c(4,4, LOTS))
+sqrt_diagGis_WPL=matrix(0, nrow=LOTS, ncol=4)
 for ( i in 1:LOTS){
-    sqrtGis_WPL[,,i]=sqrtm(Gis_WPL[, , i])
+   sqrt_diagGis_WPL[i,]= sqrt(diag(Gis_WPL[,,i]))
 }
-
-
-
 
 #bias,  sd (empirical standard deviation)  and estimated sd (G) for uninformative sampling (NML, PL, WPL)
 df<- matrix(c(apply(Fit_NML, 2,  mean), apply(Fit_NML, 2, sd), apply(Fit_PL, 2, mean), apply(Fit_PL, 2, sd),
